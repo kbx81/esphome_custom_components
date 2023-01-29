@@ -32,8 +32,8 @@ class DoPLEDOutput : public light::AddressableLight {
  public:
   DoPLEDOutput(remote_transmitter::RemoteTransmitterComponent *transmitter, output::BinaryOutput *output_p2,
                output::FloatOutput *output_n1_pwm, output::BinaryOutput *output_n2, output::BinaryOutput *output_2v5)
-      : transmitter_(transmitter),
-        transmit_call_(transmitter->transmit()),
+      : transmit_call_(new remote_transmitter::RemoteTransmitterComponent::TransmitCall(transmitter->transmit())),
+        transmitter_(transmitter),
         output_p2_(output_p2),
         output_n1_pwm_(output_n1_pwm),
         output_n2_(output_n2),
@@ -96,12 +96,12 @@ class DoPLEDOutput : public light::AddressableLight {
   uint32_t last_refresh_{0};
   optional<uint32_t> max_refresh_rate_{};
   light::ColorMode prev_color_mode_{};
-  output::BinaryOutput *output_2v5_{nullptr};
+  remote_transmitter::RemoteTransmitterComponent::TransmitCall *transmit_call_{nullptr};
+  remote_transmitter::RemoteTransmitterComponent *transmitter_{nullptr};
   output::BinaryOutput *output_p2_{nullptr};
   output::FloatOutput *output_n1_pwm_{nullptr};
   output::BinaryOutput *output_n2_{nullptr};
-  remote_transmitter::RemoteTransmitterComponent *transmitter_{nullptr};
-  remote_transmitter::RemoteTransmitterComponent::TransmitCall transmit_call_;
+  output::BinaryOutput *output_2v5_{nullptr};
 };
 
 class DoPLEDLightTransformer : public light::LightTransitionTransformer {
@@ -127,11 +127,6 @@ struct DoPLEDData {
   uint8_t num_leds;
   dop_led_plus_h_bridge::EOrder order;
   Color *leds;
-
-  // bool operator==(const DoPLEDData &rhs) const {
-  //   return (num_header_bits == rhs.num_header_bits) && (address == rhs.address) && (color.r == rhs.color.r) &&
-  //          (color.g == rhs.color.g) && (color.b == rhs.color.b);
-  // }
 };
 
 class DoPLEDProtocol : public RemoteProtocol<DoPLEDData> {

@@ -1,5 +1,3 @@
-#ifdef USE_ARDUINO
-
 #include "dop_led_plus_h_bridge.h"
 #include "esphome/core/log.h"
 
@@ -34,7 +32,7 @@ void DoPLEDOutput::write_state(light::LightState *state) {
           this->prev_color_mode_ = color_mode;                // save new mode
           this->output_n1_pwm_->set_level(0);                 // turn off conflicting drivers
           this->output_p2_->turn_off();                       // turn off conflicting drivers
-          delay(5);                                           // let currents settle
+          delay(2);                                           // let currents settle
           this->output_n2_->turn_on();                        // turn on required drivers
           this->transmitter_->set_rmt_force_inverted(false);  // "enable" the RMT
           this->output_2v5_->turn_on();                       // turn on required drivers
@@ -53,11 +51,11 @@ void DoPLEDOutput::write_state(light::LightState *state) {
           ESP_LOGD(TAG, "RMT not set, cannot write RGB values to bus!");
         } else {
           ESP_LOGVV(TAG, "Writing RGB values to bus...");
-          this->transmit_call_.get_data()->reset();
+          this->transmit_call_->get_data()->reset();
           remote_base::DoPLEDData xmit_data{this->num_header_bits_, this->num_leds_, this->order_, this->leds_};
-          remote_base::DoPLEDProtocol().encode(this->transmit_call_.get_data(), xmit_data);
-          this->transmit_call_.set_send_times(0);
-          this->transmit_call_.perform();
+          remote_base::DoPLEDProtocol().encode(this->transmit_call_->get_data(), xmit_data);
+          this->transmit_call_->set_send_times(0);
+          this->transmit_call_->perform();
         }
         break;
 
@@ -67,7 +65,7 @@ void DoPLEDOutput::write_state(light::LightState *state) {
           this->output_2v5_->turn_off();                     // turn off conflicting drivers
           this->transmitter_->set_rmt_force_inverted(true);  // "disable" the RMT
           this->output_n2_->turn_off();                      // turn off conflicting drivers
-          delay(5);                                          // let currents settle
+          delay(2);                                          // let currents settle
           this->output_p2_->turn_on();                       // turn on required drivers
         }
         this->output_n1_pwm_->set_level(brightness);  // set brightness
@@ -81,8 +79,8 @@ void DoPLEDOutput::write_state(light::LightState *state) {
   } else {  // turn everything off
     this->prev_color_mode_ = light::ColorMode::UNKNOWN;
     this->output_2v5_->turn_off();
-    this->transmitter_->set_rmt_force_inverted(true);
     this->output_n2_->turn_off();
+    this->transmitter_->set_rmt_force_inverted(true);
     this->output_n1_pwm_->set_level(0);
     this->output_p2_->turn_off();
   }
@@ -195,10 +193,11 @@ optional<light::LightColorValues> DoPLEDLightTransformer::apply() {
 
 namespace remote_base {
 
-static const uint8_t BIT_ONE_HIGH_US = 150;
-static const uint8_t BIT_ZERO_HIGH_US = 90;
-static const uint8_t BIT_LOW_US = 150;
-static const uint16_t FOOTER_MARK_US = 300;
+// these values are absolute minimums that seem to work consistently and reliably
+static const uint8_t BIT_ONE_HIGH_US = 135;
+static const uint8_t BIT_ZERO_HIGH_US = 80;
+static const uint8_t BIT_LOW_US = 80;
+static const uint16_t FOOTER_MARK_US = 250;
 
 void DoPLEDProtocol::encode(RemoteTransmitData *dst, const DoPLEDData &data) {
   // (8 bits for each of R, G, B + header bits + footer bit) * 2 (because high/low)
@@ -214,7 +213,7 @@ void DoPLEDProtocol::encode(RemoteTransmitData *dst, const DoPLEDData &data) {
       }
     }
 
-    for (size_t col_i = 2; col_i >= 0 && col_i < 3; col_i--) {
+    for (size_t col_i = 2; col_i < 3; col_i--) {
       size_t col_attr_i = (data.order >> (col_i * 3)) & 7;
 
       for (uint8_t mask = 1; mask; mask <<= 1) {
@@ -231,5 +230,3 @@ void DoPLEDProtocol::encode(RemoteTransmitData *dst, const DoPLEDData &data) {
 
 }  // namespace remote_base
 }  // namespace esphome
-
-#endif  // USE_ARDUINO

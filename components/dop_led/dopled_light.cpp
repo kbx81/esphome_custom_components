@@ -49,10 +49,11 @@ void DoPLEDOutput::write_state(light::LightState *state) {
 
 namespace remote_base {
 
-static const uint8_t BIT_ONE_HIGH_US = 150;
-static const uint8_t BIT_ZERO_HIGH_US = 90;
-static const uint8_t BIT_LOW_US = 150;
-static const uint16_t FOOTER_MARK_US = 300;
+// these values are absolute minimums that seem to work consistently and reliably
+static const uint8_t BIT_ONE_HIGH_US = 135;
+static const uint8_t BIT_ZERO_HIGH_US = 80;
+static const uint8_t BIT_LOW_US = 80;
+static const uint16_t FOOTER_MARK_US = 250;
 
 void DoPLEDProtocol::encode(RemoteTransmitData *dst, const DoPLEDData &data) {
   // (8 bits for each of R, G, B + header bits + footer bit) * 2 (because high/low)

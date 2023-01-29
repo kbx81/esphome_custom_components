@@ -4,6 +4,8 @@
 
 #ifdef USE_ESP32
 
+#include "soc/gpio_periph.h"
+
 namespace esphome {
 namespace remote_transmitter {
 
@@ -71,6 +73,8 @@ void RemoteTransmitterComponent::configure_rmt_() {
     }
     this->initialized_ = true;
   }
+  // we require open-drain mode
+  GPIO.pin[c.gpio_num].pad_driver = 1;
 }
 
 void RemoteTransmitterComponent::set_rmt_force_inverted(bool state) {
