@@ -63,12 +63,14 @@ void DoPLEDOutput::write_state(light::LightState *state) {
         if (color_mode != this->prev_color_mode_) {
           this->prev_color_mode_ = color_mode;               // save new mode
           this->output_2v5_->turn_off();                     // turn off conflicting drivers
-          this->transmitter_->set_rmt_force_inverted(true);  // "disable" the RMT
           this->output_n2_->turn_off();                      // turn off conflicting drivers
+          this->transmitter_->set_rmt_force_inverted(true);  // "disable" the RMT
           delay(2);                                          // let currents settle
+          this->output_n1_pwm_->set_level(brightness);       // set brightness
           this->output_p2_->turn_on();                       // turn on required drivers
+        } else {
+          this->output_n1_pwm_->set_level(brightness);  // set brightness
         }
-        this->output_n1_pwm_->set_level(brightness);  // set brightness
         break;
 
       default:
