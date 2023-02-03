@@ -21,7 +21,7 @@ void DoPLEDOutput::dump_config() {
 }
 
 void DoPLEDOutput::write_state(light::LightState *state) {
-  auto color_mode = state->current_values.get_color_mode();
+  auto color_mode = this->is_effect_active() ? light::ColorMode::RGB : state->current_values.get_color_mode();
   uint32_t now = micros();
   float brightness;
   state->current_values_as_brightness(&brightness);
@@ -66,11 +66,9 @@ void DoPLEDOutput::write_state(light::LightState *state) {
           this->output_n2_->turn_off();                      // turn off conflicting drivers
           this->transmitter_->set_rmt_force_inverted(true);  // "disable" the RMT
           delay(2);                                          // let currents settle
-          this->output_n1_pwm_->set_level(brightness);       // set brightness
           this->output_p2_->turn_on();                       // turn on required drivers
-        } else {
-          this->output_n1_pwm_->set_level(brightness);  // set brightness
         }
+        this->output_n1_pwm_->set_level(brightness);  // set brightness
         break;
 
       default:
@@ -117,6 +115,7 @@ void DoPLEDLightTransformer::start() {
     this->changing_color_mode_ = true;
     this->intermediate_values_ = this->start_values_;
     this->intermediate_values_.set_state(false);
+    this->intermediate_values_.set_brightness(0);
   }
 
   auto end_values = this->target_values_;
@@ -178,6 +177,7 @@ optional<light::LightColorValues> DoPLEDLightTransformer::apply() {
       this->intermediate_values_.get_color_mode() != this->target_values_.get_color_mode()) {
     this->intermediate_values_ = this->target_values_;
     this->intermediate_values_.set_state(false);
+    this->intermediate_values_.set_brightness(0);
   }
 
   light::LightColorValues &start =
@@ -196,10 +196,10 @@ optional<light::LightColorValues> DoPLEDLightTransformer::apply() {
 namespace remote_base {
 
 // these values are absolute minimums that seem to work consistently and reliably
-static const uint8_t BIT_ONE_HIGH_US = 135;
+static const uint8_t BIT_ONE_HIGH_US = 140;
 static const uint8_t BIT_ZERO_HIGH_US = 80;
 static const uint8_t BIT_LOW_US = 80;
-static const uint16_t FOOTER_MARK_US = 250;
+static const uint16_t FOOTER_MARK_US = 260;
 
 void DoPLEDProtocol::encode(RemoteTransmitData *dst, const DoPLEDData &data) {
   // (8 bits for each of R, G, B + header bits + footer bit) * 2 (because high/low)
