@@ -15,3 +15,5 @@ external_components:
 ```
 
 Please see ESPHome's [external components](https://esphome.io/components/external_components.html) documentation for more detail.
+
+If you found any of this helpful and feel so inclined, please [Buy Me A Coffee](https://bmc.link/kbx81)! ☕️
