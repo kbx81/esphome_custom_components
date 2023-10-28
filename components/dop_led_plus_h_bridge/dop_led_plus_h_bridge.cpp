@@ -16,7 +16,7 @@ void DoPLEDOutput::dump_config() {
   ESP_LOGCONFIG(TAG, "  Num LEDs: %u", this->num_leds_);
   ESP_LOGCONFIG(TAG, "  Num header bits: %u", this->num_header_bits_);
   if (this->max_refresh_rate_.has_value()) {
-    ESP_LOGCONFIG(TAG, "  Max refresh rate: %u", this->max_refresh_rate_.value());
+    ESP_LOGCONFIG(TAG, "  Max refresh rate: %" PRIu32, this->max_refresh_rate_.value());
   }
 }
 

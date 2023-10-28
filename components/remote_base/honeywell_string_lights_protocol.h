@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cinttypes>
+
 #include "remote_base.h"
 
 namespace esphome {

@@ -52,7 +52,7 @@ optional<HSLData> HSLProtocol::decode(RemoteReceiveData src) {
   return out;
 }
 
-void HSLProtocol::dump(const HSLData &data) { ESP_LOGD(TAG, "Received HSL: data=0x%04X", data.data); }
+void HSLProtocol::dump(const HSLData &data) { ESP_LOGD(TAG, "Received HSL: data=0x%04" PRIX32, data.data); }
 
 }  // namespace remote_base
 }  // namespace esphome

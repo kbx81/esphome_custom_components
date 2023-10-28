@@ -11,6 +11,8 @@
 #include "esphome/components/remote_base/remote_base.h"
 #include "esphome/components/remote_transmitter/remote_transmitter.h"
 
+#include <cinttypes>
+
 namespace esphome {
 namespace dop_led_plus_h_bridge {
 
