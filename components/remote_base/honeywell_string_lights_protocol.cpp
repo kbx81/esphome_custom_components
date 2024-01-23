@@ -7,8 +7,8 @@ namespace remote_base {
 static const char *const TAG = "remote.honeywell_string_lights";
 
 static const uint8_t NBITS = 16;
-static const uint32_t HEADER_HIGH_US = 2000;
-static const uint32_t HEADER_LOW_US = 550;
+static const uint32_t HEADER_0_US = 2000;
+static const uint32_t HEADER_1_US = 550;
 static const uint32_t BIT_ONE_LOW_US = 1000;
 static const uint32_t BIT_ZERO_LOW_US = 450;
 static const uint32_t BIT_HIGH_US = 550;
@@ -17,7 +17,7 @@ void HSLProtocol::encode(RemoteTransmitData *dst, const HSLData &data) {
   dst->set_carrier_frequency(38000);
   dst->reserve(2 + NBITS * 2u);
 
-  dst->item(HEADER_HIGH_US, HEADER_LOW_US);
+  dst->item(HEADER_0_US, HEADER_1_US);
 
   for (uint32_t mask = 1UL << (NBITS - 1); mask != 0; mask >>= 1) {
     if (data.data & mask) {
@@ -30,21 +30,21 @@ void HSLProtocol::encode(RemoteTransmitData *dst, const HSLData &data) {
 
 optional<HSLData> HSLProtocol::decode(RemoteReceiveData src) {
   HSLData out{.data = 0};
-  if (!src.expect_item(HEADER_HIGH_US, HEADER_LOW_US))
+  if (!src.expect_space(HEADER_0_US) || !src.expect_mark(HEADER_1_US))
     return {};
 
   for (uint8_t i = NBITS; i > 0; i--) {
     out.data <<= 1UL;
-    if (src.expect_mark(BIT_ONE_LOW_US)) {
+    if (src.expect_space(BIT_ONE_LOW_US)) {
       out.data |= 1UL;
-    } else if (src.expect_mark(BIT_ZERO_LOW_US)) {
+    } else if (src.expect_space(BIT_ZERO_LOW_US)) {
       out.data |= 0UL;
     } else {
       return {};
     }
 
     if (i > 1) {
-      if (!src.expect_space(BIT_HIGH_US)) {
+      if (!src.expect_mark(BIT_HIGH_US)) {
         return {};
       }
     }
